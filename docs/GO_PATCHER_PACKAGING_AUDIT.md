@@ -8,7 +8,7 @@ The patcher source archive contains only `main.go` and `go.mod`. The module is `
 
 ## Embedded archive format
 
-The final `SSI_KiCad_Sheet_Preview_Patcher_v1.0.2.exe` opens successfully with a standard ZIP reader. Its embedded ZIP contains **29 entries**: 27 binary files under `payload/bin/`, `manifest.csv`, and one directory entry.
+The final `SSI_KiCad_Sheet_Preview_Patcher_v1.0.2.exe` opens successfully with a standard ZIP reader. Its embedded ZIP contains **29 entries**: 27 binary files under `payload/bin/`, `manifest.csv`, and `README.txt`.
 
 The embedded `manifest.csv` header is:
 
@@ -41,3 +41,25 @@ The 27 replacement files were previously verified as byte-for-byte identical to 
 - Correspondence between the 27 compiled KiCad replacements and the retained modified KiCad source tree.
 
 **No installer or binary was rebuilt, modified, or released by this audit.** A reconstructed packaging script would be a new, documented procedure rather than proof of the historical one. Public binary release remains on HOLD pending the broader corresponding-source and licensing review.
+
+
+## Compiler build information recovered from the actual EXE
+
+Running the Go toolchain's built-in `go version -m` inspection against the retained final `SSI_KiCad_Sheet_Preview_Patcher_v1.0.2.exe` produced:
+
+```text
+go1.23.2
+path ssi-kicad-patcher
+mod ssi-kicad-patcher (devel)
+build -buildmode=exe
+build -compiler=gc
+build -trimpath=true
+build CGO_ENABLED=0
+build GOARCH=amd64
+build GOOS=windows
+build GOAMD64=v1
+```
+
+This is embedded build metadata from the actual executable, not an inference from `go.mod`. It closes the Go compiler patch-version and several build-flag questions. It does **not** establish the exact historical shell command, optional linker flags not represented here, or the ZIP-append packaging script.
+
+**Correction to earlier archive inventory:** the 29 ZIP entries are 27 binaries, `manifest.csv`, and `README.txt`; there is no directory entry in this inventory. This correction does not change the verified 27/27 binary payload comparison.
