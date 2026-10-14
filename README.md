@@ -53,4 +53,4 @@ No browser cookie or cloud account is involved. Installation validation is perfo
 
 ## Licensing
 
-The upstream KiCad project has its own licenses. The patcher and modification sources require a reviewed license and corresponding-source publication before this repository is considered a complete source distribution. No license grant is implied for third-party code by this README.
+SSI Electronics releases its original Go patcher code and its KiCad modifications under **GPL-3.0-or-later** with the project owner's approval. Upstream KiCad and third-party components retain their own applicable copyright and license notices. See [LICENSING.md](LICENSING.md). The full corresponding-source and build-script distribution for the embedded KiCad binaries is still being completed; this repository is not yet a verified complete source distribution.
