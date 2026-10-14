@@ -7,6 +7,7 @@
 - Preview geometry follows the hierarchical sheet frame and clips to its boundaries.
 - Preview graphics are included in tested PDF and SVG schematic plots.
 - Changes to child sheets refresh the parent previews.
+- Hierarchical sheet geometry can be displayed and adjusted directly on the root schematic page.
 
 ## Limitations
 
