@@ -13,6 +13,10 @@ Automatic, scaled previews of child schematics inside hierarchical sheet rectang
 - Updates previews after edits to child sheets.
 - Displays **and lets you adjust** hierarchical sheet geometry directly on the root schematic page.
 
+## Release status
+
+**Public binary release is on hold** while corresponding-source and licensing checks are completed. The instructions below describe the tested patcher workflow; do not assume the ZIP is currently available from GitHub Releases.
+
 ## Installation
 
 This project distributes a **separate patcher**, not a complete KiCad installer.
