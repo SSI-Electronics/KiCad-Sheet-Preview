@@ -72,3 +72,16 @@ The `PAYLOAD_HASHES.csv` in `SSI_KiCad_10.0.6_WORKING_BINARIES_001.zip` was inde
 **Privacy:** the uploaded build metadata contains absolute Windows filesystem paths and potentially local configuration details. Keep the raw audit ZIP private; publish a sanitized reproduction guide instead.
 
 **Remaining release gates:** verify a pristine upstream KiCad 10.0.6 base and patch applicability; record the complete payload embedding/packaging build; obtain reproducible or otherwise independently attested source-to-binary provenance; review third-party licenses and modification notices. The public binary release remains on hold.
+
+
+## Final EXE payload comparison — 15 October 2026
+
+The released-candidate `SSI_KiCad_Sheet_Preview_Patcher_v1.0.2.exe` was opened directly as a ZIP container. Each of the 27 embedded `payload/bin/` files was hashed with SHA-256 and compared with the matching `bin\\` file from `SSI_KiCad_10.0.6_WORKING_BINARIES_001.zip`:
+
+- 27 files in EXE payload
+- 27 files in working binary archive
+- 27 matching normalized relative paths
+- **27/27 byte-for-byte identical**
+- 0 missing and 0 mismatched files
+
+**This proves the shipped patcher embeds the previously audited working binary payload.** It does not prove that those working binaries were built from the exact retained source tree. Public binary release remains on hold pending source correspondence and licensing review.
