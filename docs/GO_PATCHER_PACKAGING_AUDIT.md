@@ -63,3 +63,21 @@ build GOAMD64=v1
 This is embedded build metadata from the actual executable, not an inference from `go.mod`. It closes the Go compiler patch-version and several build-flag questions. It does **not** establish the exact historical shell command, optional linker flags not represented here, or the ZIP-append packaging script.
 
 **Correction to earlier archive inventory:** the 29 ZIP entries are 27 binaries, `manifest.csv`, and `README.txt`; there is no directory entry in this inventory. This correction does not change the verified 27/27 binary payload comparison.
+
+
+## Embedded README inconsistency — follow-up audit
+
+The actual v1.0.2 executable contains a 257-byte `README.txt` with this historical text:
+
+```text
+SSI KiCad 10.0.6 patch preparation 001
+27 verified custom binaries and expected original SHA-256 hashes.
+This is NOT an executable patch. No files have been modified.
+Windows installation/restore engine and end-to-end validation remain to be completed.
+```
+
+The statements about the executable and installation/restore engine are **outdated** for the tested v1.0.2 patcher. This README was evidently carried over from the initial payload-preparation archive. It must not be presented as current end-user guidance.
+
+The manifest has the exact header `RelativePath,OriginalHash,CustomHash` and 27 data rows; both files are stored alongside the 27 `payload/bin/` entries in the embedded ZIP.
+
+**Action:** correct the README when creating a *new* candidate package, and update documentation for the currently retained candidate. Do not rewrite the ZIP inside the tested v1.0.2 executable without a new checksum, version and validation cycle. This finding does not by itself demonstrate that install or rollback fails.
