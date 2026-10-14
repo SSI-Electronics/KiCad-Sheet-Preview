@@ -24,6 +24,8 @@ The 15-file modified KiCad patch is published at [source/patches](../source/patc
 Close KiCad before patching; select only an **original KiCad 10.0.6 Windows x64** installation that passes validation. Retain patcher-managed backups until successful restoration. Do not bypass security protections to run the unsigned EXE.
 
 ## Licensing and source distribution — outstanding
+The upstream KiCad license and the SSI modification notices are documented in [LICENSING.md](LICENSING.md). The supplementary archive `SSI_KiCad_v1.0.2_License_and_Source_Addendum_001.zip` (SHA-256 `48b15a67f92cee78e3bae1bf734fee7ca76fb897ba65fda97a025ae473707913`) includes the GPL texts, original patcher source and 15-file KiCad patch. It is not a substitute for the full modified KiCad source tree or required external dependency sources/build-control scripts.
+
 **Do not describe this release as GPL-complete yet.** The patcher source ZIP and 15-file KiCad patch are **not by themselves complete Corresponding Source** for all included KiCad binaries and dependencies. Before publicly attaching the binary ZIP, supply the full applicable Corresponding Source, necessary build/install scripts and third-party license notices, or an appropriate GPLv3-compliant distribution arrangement. The historic v1.0.2 binaries contain documented development instrumentation and an obsolete embedded README. The tested binary has not been altered.
 
 ## Publishing steps
