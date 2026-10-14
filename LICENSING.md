@@ -4,7 +4,7 @@
 
 **KiCad 10.0.6 and SSI's modifications to KiCad:** GNU GPL version 3 or later (GPL-3.0-or-later), subject to upstream per-file notices and exceptions. SSI Electronics claims only its original changes, not upstream authorship.
 
-**Standalone SSI Go patcher:** SSI Electronics' original Go source is offered under GPL-3.0-or-later for this release, subject to confirmation by the project rights holder. This does not change the licenses of the Go standard library or any third-party components.
+**Standalone SSI Go patcher:** With the project owner's explicit approval on 15 October 2026, SSI Electronics' original Go patcher source is released under GPL-3.0-or-later. This grant covers only code for which SSI Electronics holds the relevant rights. This does not change the licenses of the Go standard library or any third-party components.
 
 The authoritative license text is the unmodified GNU GPLv3 in the upstream KiCad 10.0.6 source archive (`LICENSE` and `LICENSE.GPLv3`). The upstream `LICENSE.README` lists components under MIT, Boost, BSD, Apache-2.0, ISC, zlib, GPLv2-or-later, Creative Commons and public-domain terms; preserve those individual notices.
 
