@@ -6,6 +6,6 @@ The release-candidate source changes have been isolated to **15 substantive sour
 
 It was generated from the supplied KiCad 10.0.6 reference archive and the retained modified source tree. The patch was checked for applicability against the supplied reference files. It contains development instrumentation and must not be described as a diagnostics-free production patch.
 
-**Publication status:** The patch is preserved as an audit artifact but **has not yet been committed as a GitHub source file**. This document records its exact fingerprint; it is not a substitute for hosting the patch and complete Corresponding Source.
+**Publication status:** The complete 15-file patch is now published at [`source/patches/SSI_KiCad_10.0.6_CLEAN_15_FILES.patch`](../source/patches/SSI_KiCad_10.0.6_CLEAN_15_FILES.patch). Its text was fetched back from GitHub and verified against the retained source patch. This patch alone is **not** complete GPL Corresponding Source for the distributed KiCad binaries.
 
 **Release status:** public binary release remains on HOLD pending source package and GPL review. No rebuild or changes to the tested v1.0.2 executable were performed.
