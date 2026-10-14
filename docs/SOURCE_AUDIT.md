@@ -85,3 +85,19 @@ The released-candidate `SSI_KiCad_Sheet_Preview_Patcher_v1.0.2.exe` was opened d
 - 0 missing and 0 mismatched files
 
 **This proves the shipped patcher embeds the previously audited working binary payload.** It does not prove that those working binaries were built from the exact retained source tree. Public binary release remains on hold pending source correspondence and licensing review.
+
+
+## Source package fingerprint and patch classification — 15 October 2026
+
+The retained source archive and modification patch were independently fingerprinted:
+
+| Artifact | SHA-256 |
+| --- | --- |
+| `SSI_KiCad_10.0.6_Release_1.0_SOURCE.zip` | `b5edc4c761efe02f907852a35a227eceb81439c548b414276c3c3c003aee1726` |
+| `SSI_KiCad_10.0.6_Source_Changes_001.patch` | `da08d369377bfabcb1bdad61ab624f36a37d45548526fd1281e7de87434bcedc` |
+
+The patch lists 41 changed paths, all present in the source archive. **15** paths are core code/headers across GAL, plotting, view, Eeschema, and sheet-properties modules. The other **26** are help or formula headers that look like generated or formatting-affected files. They require classification against pristine upstream before inclusion in a minimal patch; do not assume all 41 are intentional SSI feature changes.
+
+The source archive contains a root `vcpkg.json` and `LICENSE.README` / `LICENSE.GPLv3`, but no `.git` history. The CMake configuration and binary payload audits remain documented above.
+
+**Next release gate:** acquire the exact pristine upstream KiCad 10.0.6 source and compare all 41 paths, distinguishing feature modifications, instrumentation, and generated/unrelated changes. Then record source-to-binary build evidence. No code or binary was changed during this classification.
