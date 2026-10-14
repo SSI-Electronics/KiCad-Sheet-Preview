@@ -46,3 +46,29 @@ Direct inspection of the supplied 267 MB source archive shows:
 **Result:** the supplied sources and patch are not yet a proven clean, reproducible corresponding-source release. Do not remove instrumentation from the tested v1.0.2 binaries without making and testing a new release version. The next step is to obtain a pristine KiCad 10.0.6 baseline and a recorded Windows build manifest (compiler, CMake cache, vcpkg baseline, command lines, build outputs), then compare the modified source and shipped binaries.
 
 No binaries, patcher code, or installer were changed by this audit.
+
+
+## BUILD_AUDIT_001 findings — 15 October 2026
+
+The user supplied `SSI_KiCad_10.0.6_BUILD_AUDIT_001.zip`, containing 11 build metadata files. Inspection confirmed:
+
+| Evidence | Finding |
+| --- | --- |
+| `kicad_build_version.txt` | `10.0.6` |
+| `CMakeCache.txt` | `Release`, `Ninja`, MSVC `14.51.36231`, `x64-windows` vcpkg |
+| C/C++ compiler | `C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.51.36231/bin/Hostx64/x64/cl.exe` |
+| Source root | `C:/KiCad_Development/source/kicad-10.0.6` |
+| Install prefix | `C:/KiCad_Development/install` |
+| SWIG | `4.5.1` |
+| `compile_commands.json` | 2,229 compilation commands; 384 with `eeschema` in source file path |
+| `.ninja_log` | 4,515 build log entries |
+| `install_manifest.txt` | 829 installed file entries, including all 27 relative paths in the binary payload |
+| `vcpkg-manifest-install.log` | dependency manifest resolved successfully; 107 packages in dependency information |
+
+The `PAYLOAD_HASHES.csv` in `SSI_KiCad_10.0.6_WORKING_BINARIES_001.zip` was independently verified: **27/27 entries have matching SHA-256 and byte lengths**. All 27 payload paths are represented in the supplied install manifest.
+
+**Interpretation:** the evidence strongly identifies the build environment and shows consistent binary inventory. It **does not cryptographically prove** that the 27 binaries were built from the exact source archive: the install manifest contains file paths, not output hashes; compiler command listings and Ninja logs likewise do not establish binary-to-source identity.
+
+**Privacy:** the uploaded build metadata contains absolute Windows filesystem paths and potentially local configuration details. Keep the raw audit ZIP private; publish a sanitized reproduction guide instead.
+
+**Remaining release gates:** verify a pristine upstream KiCad 10.0.6 base and patch applicability; record the complete payload embedding/packaging build; obtain reproducible or otherwise independently attested source-to-binary provenance; review third-party licenses and modification notices. The public binary release remains on hold.
