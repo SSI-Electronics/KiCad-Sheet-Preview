@@ -27,3 +27,18 @@ The source contains eight references to these five explicit CSV paths. The exist
 ## Current decision
 
 **Public binary release: HOLD.** No modifications have been made to the existing binaries, installer, or original source archives. This document identifies a review requirement; it is not evidence of malicious behavior or actual exposure of user data.
+
+
+## Detailed source-level behavior (follow-up review)
+
+The 15-file clean patch was inspected around every hard-coded CSV path:
+
+- **Cairo groups:** the `CAIRO_GAL_BASE` constructor attempts a one-time `gal_constructed` row. `EndGroup()` and `DrawGroup()` log the first ten calls and then every hundredth call. On failure, the code issues `wxLogWarning`.
+- **View identity:** `SSI_DEV023A9_Log` returns unless the layer is `LAYER_SHEET`, and caps logging at 8,000 invocations. It emits a `%p` view address along with event and cache/target fields.
+- **View timings:** conditional timing instrumentation writes aggregate rows after batches of 150 samples.
+- **Painter timings:** conditional preview timing instrumentation writes a `preview_batch` aggregate row after 150 samples.
+- **Target setters:** when `aLayer == 1114`, `SetLayerTarget` appends a row **without a bounded sample limit**. It includes the view pointer and a `_ReturnAddress()` pointer, in addition to old/new target values.
+
+These are static-code observations, not claims that any particular CSV was created during a user session. They establish that runtime pointer values can be written to a predictable filesystem path. That is an unnecessary diagnostic side effect for a production-facing release, and the unbounded target-setter logging is particularly worth addressing.
+
+**Recommended release strategy:** preserve and accurately publish the original source for the existing tested binary candidate; if removing the diagnostic code, make a new candidate with its own build, validation and corresponding source. Never represent the cleaned source as the source used for the unchanged candidate binary.
