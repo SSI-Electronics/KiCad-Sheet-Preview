@@ -45,3 +45,18 @@ Provide a pristine official KiCad **10.0.6** source archive (from the KiCad proj
 5. Check whether the resulting source and build recipe can account for the exact shipped payload.
 
 **Release decision remains HOLD** until source correspondence and GPL distribution requirements are satisfied.
+
+
+## Upstream comparison completed — 15 October 2026
+
+The user supplied `kicad-10.0.6.zip` (19,672 ZIP entries, uncompressed size 1,119,773,259 bytes, SHA-256 `3adc6a666443bd5cfe0b753b35ca5bb7c9b42f1ee8928f56e5dcf2fb16eb8c0e`). This is the pristine *candidate* baseline; its external origin/tag signature has not been independently authenticated.
+
+All 41 paths in the retained modification patch were found in both this archive and the retained modified source archive. Bytewise comparison yielded 41 differences; after normalizing CRLF to LF:
+
+- **15 paths retain substantive content differences** (the previously identified core paths).
+- **26 paths are exactly identical after newline normalization** (the previously identified help/formula headers).
+- **0 paths are missing**.
+
+A new, normalized unified patch containing only the 15 substantive paths was generated and successfully checked with `git apply --check` against the extracted original versions of all 15 files. The audit package `SSI_KiCad_10.0.6_Upstream_Comparison_001.zip` contains that patch, a 41-row SHA-256 comparison CSV, and a README. Its SHA-256 is `ba474641366fd6343fb35233953859e6856cd1653355c98f54b427c62a2e0eb5`.
+
+**Resolved:** The 26 apparent help/formula changes are newline-only. **Still open:** authenticate pristine archive origin, validate full build recipe/source correspondence, and complete GPL distribution review. No shipped executable or installed binary was modified.
