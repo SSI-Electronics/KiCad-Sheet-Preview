@@ -1,27 +1,41 @@
-# Licensing and source distribution
+# Licensing and corresponding source — SSI KiCad Sheet Preview
 
-## Upstream KiCad
+## Licensing decision
 
-KiCad is an independent open-source EDA project. SSI Electronics is not affiliated with or endorsed by the KiCad project.
+**KiCad 10.0.6 and SSI's modifications to KiCad:** GNU GPL version 3 or later (GPL-3.0-or-later), subject to upstream per-file notices and exceptions. SSI Electronics claims only its original changes, not upstream authorship.
 
-The majority of KiCad's source is licensed under the **GNU General Public License, version 3 or later (GPL-3.0-or-later)**. Some components have different compatible licenses. The exact applicable notices are in the upstream KiCad 10.0.6 source distribution, particularly `LICENSE.README`, `LICENSE.GPLv3` and individual third-party license files.
+**Standalone SSI Go patcher:** SSI Electronics' original Go source is offered under GPL-3.0-or-later for this release, subject to confirmation by the project rights holder. This does not change the licenses of the Go standard library or any third-party components.
 
-Official upstream licensing: https://www.kicad.org/about/licenses/
+The authoritative license text is the unmodified GNU GPLv3 in the upstream KiCad 10.0.6 source archive (`LICENSE` and `LICENSE.GPLv3`). The upstream `LICENSE.README` lists components under MIT, Boost, BSD, Apache-2.0, ISC, zlib, GPLv2-or-later, Creative Commons and public-domain terms; preserve those individual notices.
 
-## SSI Eeschema modifications
+## Modification notice
 
-SSI's changes to GPL-covered KiCad files are distributed under **GPL-3.0-or-later**, preserving upstream copyright and license notices. Modification notices and dates should accompany the changed files. The upstream copyright remains with its respective holders; SSI claims authorship only of its original contributions.
+SSI Electronics modified the following KiCad 10.0.6 files for automatic hierarchical sheet previews and root-page sheet geometry interaction. The complete patch is in [source/patches/SSI_KiCad_10.0.6_CLEAN_15_FILES.patch](source/patches/SSI_KiCad_10.0.6_CLEAN_15_FILES.patch):
 
-## Binary distribution and corresponding source
+- `common/gal/cairo/cairo_gal.cpp`
+- `common/gal/opengl/vertex_manager.cpp`
+- `common/plotters/PDF_plotter.cpp`
+- `common/plotters/SVG_plotter.cpp`
+- `common/view/view.cpp`
+- `eeschema/dialogs/dialog_sheet_properties.cpp`
+- `eeschema/dialogs/dialog_sheet_properties.h`
+- `eeschema/sch_painter.cpp`
+- `eeschema/sch_painter.h`
+- `eeschema/sch_sheet.cpp`
+- `eeschema/sch_sheet.h`
+- `eeschema/sch_view.cpp`
+- `include/plotters/plotter.h`
+- `include/plotters/plotters_pslike.h`
+- `include/view/view.h`
 
-A Windows patcher that carries modified KiCad executable binaries is a distribution of GPL-covered object code. To publish those binaries, the exact corresponding source must be available on equivalent terms, including the KiCad 10.0.6 base, SSI changes, applicable third-party components, and build/control scripts needed to generate the binaries.
+The patch retains development CSV instrumentation targeting `C:/Downloads`. The original executable contains an obsolete embedded README; neither was silently altered.
 
-**Status:** Corresponding-source completeness and reproducibility have not yet been verified. Do not treat the available patcher-only Go source ZIP as complete corresponding source for the modified KiCad binaries. The binary release should not be made public until this check is complete.
+## Object-code distribution and source
 
-## Standalone patcher
+The patcher ZIP embeds 27 KiCad executables and libraries. Supplying only `main.go`, `go.mod`, and the 15-file patch is **not** enough to establish complete GPL Corresponding Source for those binaries. The full modified KiCad source tree, applicable dependency sources, build/install-control scripts and notices must be provided as required by GPLv3 sections 4–6. Section 6 permits several methods of providing source; source need not reproduce byte-for-byte identical object code, but must be the source from which the distributed object code was generated with the scripts required to control compilation and installation.
 
-The patcher itself is written in Go and is distributed separately as source. Its precise license treatment and third-party dependencies must be checked before a definitive top-level LICENSE is added. No proprietary restriction is asserted here over GPL-covered KiCad components.
+A full modified KiCad source-tree snapshot is retained, along with build logs, CMake configuration, and a 107-package vcpkg inventory. Availability of all externally fetched dependency sources and a validated reconstruction of the full payload build have **not** been established. Therefore **do not claim the release is GPL-complete** based solely on the files presently hosted in this repository.
 
-## No warranty
+## Warranty and attribution
 
-Software is provided without warranty to the extent permitted by the applicable licenses. Back up your KiCad installation and project data before applying modifications.
+No warranty to the extent permitted by applicable licenses. The KiCad project is independent of SSI Electronics and does not endorse this modification. Upstream copyrights and individual license notices remain with their respective owners.
