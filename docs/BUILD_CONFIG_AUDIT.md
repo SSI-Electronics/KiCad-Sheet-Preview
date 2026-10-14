@@ -47,3 +47,28 @@ The final patcher embeds 27 replacement binaries and installs/rolls back files i
 4. Rebuild in a controlled environment and compare the produced binaries against the retained 27-file payload, documenting differences if exact hashes do not match.
 
 **No build, source modification or installation was performed in preparing this document.** Public binary release remains on HOLD pending corresponding-source completeness and licensing review.
+
+
+## Cache-option extraction — follow-up
+
+A read-only extraction of the retained `CMakeCache.txt` found **177 cache entries** with keys beginning `CMAKE_`, `KICAD_`, `VCPKG_`, `BUILD_`, or `SWIG_` (excluding advanced/choice metadata). The output is `SSI_KiCad_CMake_Cache_Audit_003.txt`, SHA-256:
+
+```text
+e203d791064fb0cd001bc842e7a373294582db59215c8018ee5e9f9a1dd60b5a
+```
+
+Selected entries verified from the source cache:
+
+```text
+CMAKE_BUILD_TYPE:STRING=Release
+CMAKE_INSTALL_PREFIX:PATH=C:/KiCad_Development/install
+CMAKE_GENERATOR:INTERNAL=Ninja
+KICAD_BUILD_I18N:BOOL=OFF
+KICAD_IPC_API:BOOL=ON
+KICAD_SCRIPTING_WXPYTHON:BOOL=ON
+KICAD_SIGNAL_INTEGRITY:BOOL=ON
+KICAD_USE_PCH:BOOL=ON
+VCPKG_TARGET_TRIPLET:STRING=x64-windows
+```
+
+The full extracted text includes absolute development machine paths, so it is not committed to this repository. It can be supplied separately for private build reconstruction. **These are observed cache settings, not an authenticated original CMake invocation.** No build or installation was performed.
