@@ -1,0 +1,2 @@
+c95eecdf41820d6475329249a69765629e85e3f18b45f539dfdfd1c30e858df4  SSI_KiCad_Sheet_Preview_Patcher_v1.0.2_Win64.zip
+319e507ea07759cd17756470f209df66e5ac7af4e1213af3f99e48c720a31fc6  SSI_KiCad_Sheet_Preview_Patcher_v1.0.2_Source.zip
