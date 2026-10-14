@@ -11,6 +11,7 @@ Automatic, scaled previews of child schematics inside hierarchical sheet rectang
 - Scales and clips the preview to the sheet area.
 - Supports schematic plotting to PDF and SVG.
 - Updates previews after edits to child sheets.
+- Adds sheet geometry information to the root schematic page, making the hierarchical layout easier to inspect.
 
 ## Installation
 
