@@ -1,0 +1,998 @@
+--- a/common/gal/cairo/cairo_gal.cpp
++++ b/common/gal/cairo/cairo_gal.cpp
+@@ -27,6 +27,7 @@
+  * 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+  */
+ 
++#include <fstream>
+ #include <wx/image.h>
+ #include <wx/log.h>
+ #include <wx/dcclient.h>
+@@ -51,6 +52,17 @@
+ 
+ CAIRO_GAL_BASE::CAIRO_GAL_BASE( GAL_DISPLAY_OPTIONS& aDisplayOptions ) : GAL( aDisplayOptions )
+ {
++    // SSI DEV023A4B: one-time proof the instrumented Cairo GAL was constructed.
++    static bool ssiProbeWritten = false;
++    if( !ssiProbeWritten )
++    {
++        ssiProbeWritten = true;
++        std::ofstream ssiLog( "C:/Downloads/SSI_DEV023A4B_Cairo_Groups.csv", std::ios::app );
++        if( ssiLog )
++            ssiLog << "gal_constructed,1,0,0,ok\n";
++        else
++            wxLogWarning( "SSI DEV023A4B: cannot write Cairo group CSV in C:/Downloads" );
++    }
+     // Initialise grouping
+     m_isGrouping = false;
+     m_isElementAdded = false;
+@@ -834,12 +846,56 @@
+ void CAIRO_GAL_BASE::EndGroup()
+ {
+     storePath();
++    // SSI DEV023A4B: log from the first group, with bounded subsequent samples.
++    static unsigned long long ssiBuilds = 0;
++    ++ssiBuilds;
++    if( ssiBuilds <= 10 || ssiBuilds % 100 == 0 )
++    {
++        unsigned long long ssiPaths = 0;
++        for( const auto& command : *m_currentGroup )
++        {
++            if( command.m_Command == CMD_STROKE_PATH || command.m_Command == CMD_FILL_PATH )
++                ++ssiPaths;
++        }
++        std::ofstream ssiLog( "C:/Downloads/SSI_DEV023A4B_Cairo_Groups.csv", std::ios::app );
++        if( ssiLog )
++            ssiLog << "group_build," << ssiBuilds << ',' << m_currentGroup->size()
++                   << ',' << ssiPaths << ",ok\n";
++        else
++            wxLogWarning( "SSI DEV023A4B: cannot write Cairo group CSV in C:/Downloads" );
++    }
+     m_isGrouping = false;
+ }
+ 
+ 
+ void CAIRO_GAL_BASE::DrawGroup( int aGroupNumber )
+ {
++    // SSI DEV023A4B: count all DrawGroup calls, including unknown IDs.
++    static unsigned long long ssiCalls = 0;
++    ++ssiCalls;
++    if( ssiCalls <= 10 || ssiCalls % 100 == 0 )
++    {
++        const auto ssiGroup = m_groups.find( aGroupNumber );
++        const bool ssiFound = ssiGroup != m_groups.end();
++        unsigned long long ssiPaths = 0;
++        size_t ssiCommands = 0;
++        if( ssiFound )
++        {
++            ssiCommands = ssiGroup->second.size();
++            for( const auto& command : ssiGroup->second )
++            {
++                if( command.m_Command == CMD_STROKE_PATH || command.m_Command == CMD_FILL_PATH )
++                    ++ssiPaths;
++            }
++        }
++        std::ofstream ssiLog( "C:/Downloads/SSI_DEV023A4B_Cairo_Groups.csv", std::ios::app );
++        if( ssiLog )
++            ssiLog << "group_replay," << ssiCalls << ',' << ssiCommands << ',' << ssiPaths
++                   << ',' << ( ssiFound ? "ok" : "missing" ) << "\n";
++        else
++            wxLogWarning( "SSI DEV023A4B: cannot write Cairo group CSV in C:/Downloads" );
++    }
++
+     // This method implements a small Virtual Machine - all stored commands
+     // are executed; nested calling is also possible
+ 
+--- a/common/gal/opengl/vertex_manager.cpp
++++ b/common/gal/opengl/vertex_manager.cpp
+@@ -37,6 +37,8 @@
+ #include <gal/opengl/vertex_item.h>
+ #include <confirm.h>
+ #include <wx/log.h>
++#include <algorithm>
++#include <cmath>
+ 
+ 
+ /**
+@@ -309,6 +311,41 @@
+     {
+         aTarget.shader[j] = m_shader[j];
+     }
++
++    // SSI_KiCad_DEV020A: Line quads are expanded in the GPU from a shader
++    // width parameter, while their center vertices are CPU-transformed.
++    // Apply uniform preview scale to that width (modes 5..10).
++    // The line direction parameters are already transformed by drawLineQuad().
++    if( !m_noTransform && m_shader[0] >= 5.0f && m_shader[0] <= 10.0f )
++    {
++        const float sx = glm::length( glm::vec2( m_transform[0][0], m_transform[0][1] ) );
++        const float sy = glm::length( glm::vec2( m_transform[1][0], m_transform[1][1] ) );
++
++        if( sx > 0.0f && sy > 0.0f &&
++            std::abs( sx - sy ) <= 0.0001f * std::max( sx, sy ) )
++        {
++            aTarget.shader[1] *= sx;
++        }
++    }
++    // SSI_KiCad_DEV019B: Shader circles are expanded from their center in screen
++    // space.  The center has already been transformed above, but the radius
++    // and stroke width are shader parameters, not vertices.  Apply the same
++    // uniform 2D scale to those parameters.  Leave normal unscaled rendering
++    // unchanged.  A nonuniform transform is deliberately not adjusted here.
++    if( !m_noTransform && ( m_shader[0] == 2.0f || m_shader[0] == 3.0f ) )
++    {
++        const float sx = glm::length( glm::vec2( m_transform[0][0], m_transform[0][1] ) );
++        const float sy = glm::length( glm::vec2( m_transform[1][0], m_transform[1][1] ) );
++
++        if( sx > 0.0f && sy > 0.0f &&
++            std::abs( sx - sy ) <= 0.0001f * std::max( sx, sy ) )
++        {
++            aTarget.shader[2] *= sx;  // radius
++
++            if( m_shader[0] == 3.0f )
++                aTarget.shader[3] *= sx;  // stroke width
++        }
++    }
+ }
+ 
+ 
+--- a/common/plotters/PDF_plotter.cpp
++++ b/common/plotters/PDF_plotter.cpp
+@@ -1,3 +1,4 @@
++#include <cmath>
+ /*
+  * This program source code file is part of KiCad, a free EDA CAD application.
+  *
+@@ -199,6 +200,56 @@
+     return true;
+ }
+ 
++
++
++// SSI DEV024B1: scoped PDF child-sheet plot viewport with a device-space clip.
++bool PDF_PLOTTER::BeginSheetPreview( const VECTOR2I& aTopLeft, const VECTOR2I& aSize,
++                                     const VECTOR2I& aChildPageSize )
++{
++    if( m_ssiPreviewActive || !m_workFile || aChildPageSize.x <= 0 || aChildPageSize.y <= 0 )
++        return false;
++
++    const double factor = std::min( 0.94 * aSize.x / aChildPageSize.x,
++                                    0.94 * aSize.y / aChildPageSize.y );
++
++    if( factor <= 0.0 )
++        return false;
++
++    m_ssiPreviewOffset = m_plotOffset;
++    m_ssiPreviewScale = m_plotScale;
++    m_ssiPreviewIUsPerDecimil = m_IUsPerDecimil;
++    m_ssiPreviewMirror = m_plotMirror;
++
++    const VECTOR2D p1 = userToDeviceCoordinates( aTopLeft );
++    const VECTOR2D p2 = userToDeviceCoordinates( aTopLeft + aSize );
++    const double x = std::min( p1.x, p2.x );
++    const double y = std::min( p1.y, p2.y );
++    const double w = std::abs( p2.x - p1.x );
++    const double h = std::abs( p2.y - p1.y );
++    fmt::println( m_workFile, "q {} {} {} {} re W n", x, y, w, h );
++
++    const VECTOR2D origin = VECTOR2D( aTopLeft ) + VECTOR2D( aSize ) * 0.5
++                            - VECTOR2D( aChildPageSize ) * ( factor * 0.5 );
++    const VECTOR2D offset = ( VECTOR2D( m_ssiPreviewOffset ) - origin ) / factor;
++    SetViewport( VECTOR2I( static_cast<int>( std::lround( offset.x ) ),
++                              static_cast<int>( std::lround( offset.y ) ) ),
++                 m_ssiPreviewIUsPerDecimil, m_ssiPreviewScale * factor, m_ssiPreviewMirror );
++    m_ssiPreviewActive = true;
++    return true;
++}
++
++void PDF_PLOTTER::EndSheetPreview()
++{
++    if( !m_ssiPreviewActive )
++        return;
++
++    fmt::println( m_workFile, "Q" );
++    SetViewport( m_ssiPreviewOffset, m_ssiPreviewIUsPerDecimil,
++                 m_ssiPreviewScale, m_ssiPreviewMirror );
++    // PDF Q restores the graphics state; invalidate cached pen/color state.
++    m_currentPenWidth = -1;
++    m_ssiPreviewActive = false;
++}
+ 
+ void PDF_PLOTTER::SetViewport( const VECTOR2I& aOffset, double aIusPerDecimil, double aScale, bool aMirror )
+ {
+--- a/common/plotters/SVG_plotter.cpp
++++ b/common/plotters/SVG_plotter.cpp
+@@ -1,3 +1,4 @@
++#include <cmath>
+ /*
+  * This program source code file is part of KiCad, a free EDA CAD application.
+  *
+@@ -177,6 +178,59 @@
+ }
+ 
+ 
++
++// SSI DEV024B1: SVG child-sheet plot viewport with a local clip group.
++bool SVG_PLOTTER::BeginSheetPreview( const VECTOR2I& aTopLeft, const VECTOR2I& aSize,
++                                     const VECTOR2I& aChildPageSize )
++{
++    if( m_ssiPreviewActive || !m_outputFile || aChildPageSize.x <= 0 || aChildPageSize.y <= 0 )
++        return false;
++
++    const double factor = std::min( 0.94 * aSize.x / aChildPageSize.x,
++                                    0.94 * aSize.y / aChildPageSize.y );
++
++    if( factor <= 0.0 )
++        return false;
++
++    m_ssiPreviewOffset = m_plotOffset;
++    m_ssiPreviewScale = m_plotScale;
++    m_ssiPreviewIUsPerDecimil = m_IUsPerDecimil;
++    m_ssiPreviewMirror = m_plotMirror;
++
++    const VECTOR2D p1 = userToDeviceCoordinates( aTopLeft );
++    const VECTOR2D p2 = userToDeviceCoordinates( aTopLeft + aSize );
++    const double x = std::min( p1.x, p2.x );
++    const double y = std::min( p1.y, p2.y );
++    const double w = std::abs( p2.x - p1.x );
++    const double h = std::abs( p2.y - p1.y );
++    const unsigned id = ++m_ssiPreviewSerial;
++    fmt::println( m_outputFile,
++                  "<clipPath id=\"ssi-sheet-{}\"><rect x=\"{}\" y=\"{}\" width=\"{}\" height=\"{}\"/></clipPath>",
++                  id, x, y, w, h );
++    fmt::println( m_outputFile, "<g clip-path=\"url(#ssi-sheet-{})\">", id );
++
++    const VECTOR2D origin = VECTOR2D( aTopLeft ) + VECTOR2D( aSize ) * 0.5
++                            - VECTOR2D( aChildPageSize ) * ( factor * 0.5 );
++    const VECTOR2D offset = ( VECTOR2D( m_ssiPreviewOffset ) - origin ) / factor;
++    SetViewport( VECTOR2I( static_cast<int>( std::lround( offset.x ) ),
++                              static_cast<int>( std::lround( offset.y ) ) ),
++                 m_ssiPreviewIUsPerDecimil, m_ssiPreviewScale * factor, m_ssiPreviewMirror );
++    m_ssiPreviewActive = true;
++    return true;
++}
++
++void SVG_PLOTTER::EndSheetPreview()
++{
++    if( !m_ssiPreviewActive )
++        return;
++
++    fmt::println( m_outputFile, "</g>" );
++    SetViewport( m_ssiPreviewOffset, m_ssiPreviewIUsPerDecimil,
++                 m_ssiPreviewScale, m_ssiPreviewMirror );
++    m_graphics_changed = true;
++    m_ssiPreviewActive = false;
++}
++
+ void SVG_PLOTTER::SetViewport( const VECTOR2I& aOffset, double aIusPerDecimil,
+                                double aScale, bool aMirror )
+ {
+--- a/common/view/view.cpp
++++ b/common/view/view.cpp
+@@ -40,6 +40,27 @@
+ #include <gal/graphics_abstraction_layer.h>
+ #include <gal/painter.h>
+ #include <algorithm>
++#include <cstdio>
++
++// SSI DEV-023A6: targeted, bounded sheet cache path instrumentation.
++static void SSI_DEV023A9_Log( const void* aView, const char* aEvent, int aLayer,
++                              int aTarget, int aCached, int aGroup )
++{
++    if( aLayer != LAYER_SHEET )
++        return;
++
++    static unsigned int count = 0;
++    if( count++ >= 8000 )
++        return;
++
++    if( FILE* f = std::fopen( "C:/Downloads/SSI_DEV023A9_View_Identity.csv", "a" ) )
++    {
++        std::fprintf( f, "%p,%s,%d,%d,%d,%d\n", aView, aEvent, aLayer, aTarget, aCached, aGroup );
++        std::fclose( f );
++    }
++}
++#include <chrono>
++#include <fstream>
+ 
+ #include <core/profile.h>
+ 
+@@ -1028,6 +1049,8 @@
+     {
+         if( l->visible && IsTargetDirty( l->target ) && areRequiredLayersEnabled( l->id ) )
+         {
++            SSI_DEV023A9_Log( this, "layer", l->id, static_cast<int>( l->target ),
++                              IsCached( l->id ) ? 1 : 0, -1 );
+             DRAW_ITEM_VISITOR drawFunc( this, l->id, m_useDrawPriority, m_reverseDrawOrder );
+ 
+             m_gal->SetTarget( l->target );
+@@ -1071,22 +1094,55 @@
+ 
+     if( !viewData )
+         return;
+-
+-    if( IsCached( aLayer ) && !aImmediate )
++    SSI_DEV023A9_Log( this, "draw", aLayer, static_cast<int>( m_layers[aLayer].target ),
++                      aImmediate ? 1 : 0, viewData->getGroup( aLayer ) );
++
++    // SSI DEV023A3: read-only timing of sheet layer draw path.
++    const bool ssiTrace = ( aLayer == LAYER_SHEET );
++    const auto ssiStart = std::chrono::steady_clock::now();
++    const bool ssiCached = IsCached( aLayer ) && !aImmediate;
++
++    if( ssiCached )
+     {
+         // Draw using cached information or create one
+         int group = viewData->getGroup( aLayer );
+ 
+         if( group >= 0 )
++        {
++            SSI_DEV023A9_Log( this, "group_replay", aLayer, 1, 1, group );
+             m_gal->DrawGroup( group );
++        }
+         else
++        {
++            SSI_DEV023A9_Log( this, "cache_miss", aLayer, 1, 1, group );
+             Update( aItem );
++        }
+     }
+     else
+     {
+         // Immediate mode
+         if( !m_painter->Draw( aItem, aLayer ) )
+             aItem->ViewDraw( aLayer, this );  // Alternative drawing method
++    }
++
++    if( ssiTrace )
++    {
++        struct SSI_STATS { unsigned count = 0; double sum = 0; double max = 0; };
++        static SSI_STATS immediate, cached;
++        SSI_STATS& st = ssiCached ? cached : immediate;
++        const double ms = std::chrono::duration<double, std::milli>(
++                std::chrono::steady_clock::now() - ssiStart ).count();
++        ++st.count;
++        st.sum += ms;
++        st.max = std::max( st.max, ms );
++        if( st.count >= 150 )
++        {
++            std::ofstream log( "C:/Downloads/SSI_DEV023A3_View_Timings.csv", std::ios::app );
++            if( log )
++                log << ( ssiCached ? "cached" : "immediate" ) << ',' << st.count
++                    << ',' << ( st.sum / st.count ) << ',' << st.max << ',' << st.sum << '\n';
++            st = SSI_STATS{};
++        }
+     }
+ }
+ 
+@@ -1344,6 +1400,8 @@
+ 
+     if( !viewData )
+         return;
++    SSI_DEV023A9_Log( this, "geometry", aLayer, static_cast<int>( m_layers[aLayer].target ),
++                      0, viewData->getGroup( aLayer ) );
+ 
+     auto it = m_layers.find( aLayer );
+ 
+@@ -1365,13 +1423,37 @@
+     if( group >= 0 )
+         m_gal->DeleteGroup( group );
+ 
++    const bool ssiTraceBuild = ( aLayer == LAYER_SHEET );
++    const auto ssiBuildStart = std::chrono::steady_clock::now();
+     group = m_gal->BeginGroup();
++    SSI_DEV023A9_Log( this, "group_begin", aLayer, static_cast<int>( l.target ), 1, group );
+     viewData->setGroup( aLayer, group );
+ 
+     if( !m_painter->Draw( aItem, aLayer ) )
+         aItem->ViewDraw( aLayer, this ); // Alternative drawing method
+ 
+     m_gal->EndGroup();
++    SSI_DEV023A9_Log( this, "group_end", aLayer, static_cast<int>( l.target ), 1, group );
++
++    if( ssiTraceBuild )
++    {
++        static unsigned count = 0;
++        static double sum = 0.0, maxMs = 0.0;
++        const double ms = std::chrono::duration<double, std::milli>(
++                std::chrono::steady_clock::now() - ssiBuildStart ).count();
++        ++count;
++        sum += ms;
++        maxMs = std::max( maxMs, ms );
++        if( count >= 150 )
++        {
++            std::ofstream log( "C:/Downloads/SSI_DEV023A3_View_Timings.csv", std::ios::app );
++            if( log )
++                log << "group_build," << count << ',' << ( sum / count ) << ','
++                    << maxMs << ',' << sum << '\n';
++            count = 0;
++            sum = maxMs = 0.0;
++        }
++    }
+ }
+ 
+ 
+--- a/eeschema/dialogs/dialog_sheet_properties.cpp
++++ b/eeschema/dialogs/dialog_sheet_properties.cpp
+@@ -68,6 +68,34 @@
+         m_dummySheetNameField( &m_dummySheet, FIELD_T::SHEET_NAME )
+ {
+     m_sheet = aSheet;
++    // SSI_KiCad_DEV021A: native wxWidgets layout, KiCad UNIT_BINDER fields.
++    // Insert into the existing dialog's main vertical sizer above the bottom buttons.
++    wxStaticBoxSizer* geometry = new wxStaticBoxSizer( wxVERTICAL, this, _( "Geometry" ) );
++    wxFlexGridSizer* geometryGrid = new wxFlexGridSizer( 2, 4, 5, 8 );
++    geometryGrid->AddGrowableCol( 1 );
++    geometryGrid->AddGrowableCol( 3 );
++
++    auto addGeometry = [&]( const wxString& label, std::unique_ptr<UNIT_BINDER>& binder )
++    {
++        wxStaticText* name = new wxStaticText( geometry->GetStaticBox(), wxID_ANY, label );
++        wxTextCtrl* value = new wxTextCtrl( geometry->GetStaticBox(), wxID_ANY );
++        wxStaticText* units = new wxStaticText( geometry->GetStaticBox(), wxID_ANY, wxEmptyString );
++        geometryGrid->Add( name, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 5 );
++        wxBoxSizer* input = new wxBoxSizer( wxHORIZONTAL );
++        input->Add( value, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5 );
++        input->Add( units, 0, wxALIGN_CENTER_VERTICAL );
++        geometryGrid->Add( input, 1, wxEXPAND | wxRIGHT, 5 );
++        binder = std::make_unique<UNIT_BINDER>( aParent, name, value, units );
++    };
++
++    addGeometry( _( "X:" ), m_geometryX );
++    addGeometry( _( "Y:" ), m_geometryY );
++    addGeometry( _( "Width:" ), m_geometryWidth );
++    addGeometry( _( "Height:" ), m_geometryHeight );
++    geometry->Add( geometryGrid, 1, wxALL | wxEXPAND, 5 );
++
++    // m_longForm is the existing wxFormBuilder-managed vertical content.
++    m_longForm->Add( geometry, 0, wxALL | wxEXPAND, 5 );
+     m_fields = new FIELDS_GRID_TABLE( this, aParent, m_grid, m_sheet );
+     m_delayedFocusRow = 0;
+     m_delayedFocusColumn = FDC_VALUE;
+@@ -160,6 +188,11 @@
+     wxGridTableMessage msg( m_fields, wxGRIDTABLE_NOTIFY_ROWS_APPENDED, m_fields->size() );
+     m_grid->ProcessTableMessage( msg );
+ 
++    m_geometryX->SetValue( m_sheet->GetPosition().x );
++    m_geometryY->SetValue( m_sheet->GetPosition().y );
++    m_geometryWidth->SetValue( m_sheet->GetSize().x );
++    m_geometryHeight->SetValue( m_sheet->GetSize().y );
++
+     // border width
+     m_borderWidth.SetValue( m_sheet->GetBorderWidth() );
+ 
+@@ -224,6 +257,16 @@
+ 
+             return false;
+         }
++    }
++
++    const int requestedWidth = m_geometryWidth->GetIntValue();
++    const int requestedHeight = m_geometryHeight->GetIntValue();
++
++    if( requestedWidth < m_sheet->GetMinWidth( true ) ||
++        requestedHeight < m_sheet->GetMinHeight( true ) )
++    {
++        DisplayErrorMessage( this, _( "Sheet dimensions are smaller than the minimum allowed size." ) );
++        return false;
+     }
+ 
+     return true;
+@@ -390,6 +433,13 @@
+     if( oldNetPrefix != newNetPrefix )
+         m_frame->Prj().GetProjectFile().NetSettings()->RenameNetPathPrefix( oldNetPrefix, newNetPrefix );
+ 
++    // SSI_KiCad_DEV021A: preserve relative field positions by moving the sheet
++    // before converting the edited fields back to absolute coordinates.
++    m_sheet->SetPosition( VECTOR2I( m_geometryX->GetIntValue(),
++                                    m_geometryY->GetIntValue() ) );
++    m_sheet->Resize( VECTOR2I( m_geometryWidth->GetIntValue(),
++                              m_geometryHeight->GetIntValue() ) );
++
+     // change all field positions from relative to absolute
+     for( SCH_FIELD& m_field : *m_fields)
+         m_field.Offset( m_sheet->GetPosition() );
+--- a/eeschema/dialogs/dialog_sheet_properties.h
++++ b/eeschema/dialogs/dialog_sheet_properties.h
+@@ -28,6 +28,7 @@
+ #include <widgets/unit_binder.h>
+ #include <dialog_sheet_properties_base.h>
+ #include <sch_sheet.h>
++#include <memory>
+ 
+ class SCH_SHEET;
+ class SCH_EDIT_FRAME;
+@@ -73,6 +74,12 @@
+     FIELDS_GRID_TABLE* m_fields;
+     UNIT_BINDER        m_borderWidth;
+ 
++    // SSI_KiCad_DEV021A: native KiCad unit-aware geometry controls.
++    std::unique_ptr<UNIT_BINDER> m_geometryX;
++    std::unique_ptr<UNIT_BINDER> m_geometryY;
++    std::unique_ptr<UNIT_BINDER> m_geometryWidth;
++    std::unique_ptr<UNIT_BINDER> m_geometryHeight;
++
+     SCH_SHEET          m_dummySheet;
+     SCH_FIELD          m_dummySheetNameField;
+ };
+--- a/eeschema/sch_painter.cpp
++++ b/eeschema/sch_painter.cpp
+@@ -27,6 +27,23 @@
+ 
+ #include <trigo.h>
+ #include <chrono>
++#include <fstream>
++#include <algorithm>
++#include <memory>
++#include <vector>
++#include <wx/bitmap.h>
++#include <wx/dcmemory.h>
++#include <wx/ffile.h>
++#include <wx/utils.h>
++#include <atomic>
++#include <gal/gal_print.h>
++#include <view/view.h>
++#include <sch_screen.h>
++#include <sch_sheet_path.h>
++#include <drawing_sheet/ds_proxy_view_item.h>
++#include <drawing_sheet/ds_draw_item.h>
++#include <drawing_sheet/ds_painter.h>
++#include <page_info.h>
+ #include <bitmap_base.h>
+ #include <connection_graph.h>
+ #include <gal/graphics_abstraction_layer.h>
+@@ -107,6 +124,15 @@
+         KIGFX::PAINTER( aGal ),
+         m_schematic( nullptr )
+ { }
++
++
++SCH_SHEET_PATH* SCH_PAINTER::effectiveSheetPath() const
++{
++    if( m_sheetPathOverride )
++        return m_sheetPathOverride;
++
++    return m_schematic ? &m_schematic->CurrentSheet() : nullptr;
++}
+ 
+ 
+ bool SCH_PAINTER::Draw( const VIEW_ITEM* aItem, int aLayer )
+@@ -417,8 +443,8 @@
+                 color = otherTextItem->GetTextColor();
+         }
+ 
+-        if( color.m_text && m_schematic )
+-            color = COLOR4D( aItem->ResolveText( *color.m_text, &m_schematic->CurrentSheet() ) );
++        if( color.m_text && effectiveSheetPath() )
++            color = COLOR4D( aItem->ResolveText( *color.m_text, effectiveSheetPath() ) );
+     }
+     else  /* overrideItemColors */
+     {
+@@ -2659,10 +2685,10 @@
+     std::function<bool( wxString* )> symbolResolver =
+             [&]( wxString* token ) -> bool
+             {
+-                if( !m_schematic )
++                if( !effectiveSheetPath() )
+                     return false;
+ 
+-                return aSymbolContext->ResolveTextVar( &m_schematic->CurrentSheet(), token );
++                return aSymbolContext->ResolveTextVar( effectiveSheetPath(), token );
+             };
+ 
+     return ExpandTextVars( aSourceText, &symbolResolver );
+@@ -2678,10 +2704,11 @@
+ 
+     wxString variantName;
+ 
+-    if( m_schematic )
+-    {
+-        optSheetPath = m_schematic->CurrentSheet();
+-        variantName = m_schematic->GetCurrentVariant();
++    if( effectiveSheetPath() )
++    {
++        optSheetPath = *effectiveSheetPath();
++        if( m_schematic )
++            variantName = m_schematic->GetCurrentVariant();
+         wxLogTrace( traceSchPainter,
+                     "SCH_PAINTER::draw symbol %s: Current sheet path='%s', variant='%s', size=%zu, empty=%d",
+                     aSymbol->m_Uuid.AsString(),
+@@ -2714,7 +2741,7 @@
+         // return;
+     }
+ 
+-    int unit = m_schematic ? aSymbol->GetUnitSelection( &m_schematic->CurrentSheet() ) : 1;
++    int unit = effectiveSheetPath() ? aSymbol->GetUnitSelection( effectiveSheetPath() ) : 1;
+     int bodyStyle = aSymbol->GetBodyStyle();
+ 
+     // Use dummy symbol if the actual couldn't be found (or couldn't be locked).
+@@ -2923,10 +2950,11 @@
+     SCH_SHEET_PATH* sheetPath = nullptr;
+     wxString        variant;
+ 
+-    if( m_schematic )
+-    {
+-        sheetPath = &m_schematic->CurrentSheet();
+-        variant = m_schematic->GetCurrentVariant();
++    if( effectiveSheetPath() )
++    {
++        sheetPath = effectiveSheetPath();
++        if( m_schematic )
++            variant = m_schematic->GetCurrentVariant();
+     }
+ 
+     wxString shownText = aField->GetShownText( sheetPath, true, 0, variant );
+@@ -3339,10 +3367,11 @@
+     wxString        variant;
+     bool            DNP = false;
+ 
+-    if( m_schematic )
+-    {
+-        sheetPath = &m_schematic->CurrentSheet();
+-        variant = m_schematic->GetCurrentVariant();
++    if( effectiveSheetPath() )
++    {
++        sheetPath = effectiveSheetPath();
++        if( m_schematic )
++            variant = m_schematic->GetCurrentVariant();
+         DNP = aSheet->GetDNP( sheetPath, variant );
+     }
+ 
+@@ -3390,6 +3419,122 @@
+             }
+         }
+     }
++
++    // SSI_KiCad_DEV017A: DIAGNOSTIC ONLY — disable child preview rendering.
++    // Normal ROOT sheet drawing, hit testing, and navigation remain unchanged.
++
++    // SSI_KiCad_DEV016J: native read-only child preview, diagnostic overlays removed.
++    // Child items are painted directly, never registered in ROOT's SCH_VIEW.
++    // Prototype limitation: clipping and automatic invalidation not implemented.
++    if( ( aLayer == LAYER_SHEET || aLayer == LAYER_DRAW_BITMAPS )
++            && m_schematic && aSheet->GetScreen() && size.x > 0 && size.y > 0 )
++    {
++        // SSI DEV023A2: measure the complete child preview draw cost.
++        const auto ssiPreviewStart = std::chrono::steady_clock::now();
++        SCH_SCREEN* childScreen = aSheet->GetScreen();
++        const PAGE_INFO& page = childScreen->GetPageSettings();
++        const double pageW = schIUScale.MilsToIU( page.GetWidthMils() );
++        const double pageH = schIUScale.MilsToIU( page.GetHeightMils() );
++
++        if( pageW > 0.0 && pageH > 0.0 )
++        {
++            const double factor = std::min( size.x * 0.94 / pageW,
++                                            size.y * 0.94 / pageH );
++            SCH_SHEET_PATH childPath = m_schematic->CurrentSheet();
++            childPath.push_back( const_cast<SCH_SHEET*>( aSheet ) );
++
++            SCH_PAINTER childPainter( m_gal );
++            childPainter.SetSchematic( m_schematic );
++            childPainter.SetSheetPathOverride( &childPath );
++            *childPainter.GetSettings() = m_schSettings;
++
++            GAL_SCOPED_ATTRS attrs( *m_gal, GAL_SCOPED_ATTRS::ALL_ATTRS );
++
++            m_gal->Save();
++            m_gal->Translate( pos + size * 0.5 );
++            m_gal->Scale( VECTOR2D( factor, factor ) );
++            m_gal->Translate( VECTOR2D( -pageW * 0.5, -pageH * 0.5 ) );
++
++            if( aLayer == LAYER_SHEET )
++            {
++            // Same drawing-sheet primitives as DS_PROXY_VIEW_ITEM::ViewDraw(),
++            // without adding a proxy to ROOT's VIEW.
++            DS_DRAW_ITEM_LIST drawList( schIUScale );
++            drawList.SetDefaultPenSize( (int) m_schSettings.GetDrawingSheetLineWidth() );
++            drawList.SetIsFirstPage( childScreen->GetVirtualPageNumber() == 1 );
++            drawList.SetPageNumber( childScreen->GetPageNumber() );
++            drawList.SetSheetCount( childScreen->GetPageCount() );
++            drawList.SetFileName( childScreen->GetFileName() );
++            drawList.SetProject( &m_schematic->Project() );
++            drawList.SetProperties( m_schematic->GetProperties() );
++            drawList.BuildDrawItemsList( page, childScreen->GetTitleBlock() );
++
++            DS_PAINTER worksheetPainter( m_gal );
++            auto* ws = static_cast<DS_RENDER_SETTINGS*>( worksheetPainter.GetSettings() );
++            ws->SetNormalColor( m_schSettings.GetLayerColor( LAYER_SCHEMATIC_DRAWINGSHEET ) );
++            ws->SetPageBorderColor( m_schSettings.GetLayerColor( LAYER_SCHEMATIC_PAGE_LIMITS ) );
++            ws->SetSelectedColor( m_schSettings.GetLayerColor( LAYER_SELECT_OVERLAY ) );
++            ws->SetBrightenedColor( m_schSettings.GetLayerColor( LAYER_BRIGHTENED ) );
++            ws->SetDefaultFont( m_schSettings.GetDefaultFont() );
++
++            for( DS_DRAW_ITEM_BASE* item = drawList.GetFirst(); item;
++                 item = drawList.GetNext() )
++                worksheetPainter.Draw( item, LAYER_DRAWINGSHEET );
++
++
++            }
++
++            // SSI_KiCad_DEV022C: separate cached vectors from noncached
++            // immediate-mode bitmap rendering.
++            for( EDA_ITEM* item : childScreen->Items() )
++            {
++                if( item->Type() == SCH_SHEET_T )
++                    continue;
++
++                const bool bitmap = item->Type() == SCH_BITMAP_T;
++
++                if( bitmap != ( aLayer == LAYER_DRAW_BITMAPS ) )
++                    continue;
++
++                for( int layer : item->ViewGetLayers() )
++                {
++                    if( layer != LAYER_SELECTION_SHADOWS )
++                        childPainter.Draw( item, layer );
++                }
++            }
++
++            m_gal->Restore();
++
++        }
++
++        // Only the vector layer: bitmaps are drawn in a separate pass.
++        if( aLayer == LAYER_SHEET )
++        {
++            using SSI_CLOCK = std::chrono::steady_clock;
++            const double ms = std::chrono::duration<double, std::milli>(
++                    SSI_CLOCK::now() - ssiPreviewStart ).count();
++            static unsigned ssiCount = 0;
++            static double ssiSum = 0.0;
++            static double ssiMax = 0.0;
++            ssiCount++;
++            ssiSum += ms;
++            ssiMax = std::max( ssiMax, ms );
++
++            if( ssiCount >= 150 )
++            {
++                std::ofstream log( "C:/Downloads/SSI_DEV023A2_Cairo_Timings.csv",
++                                   std::ios::app );
++                if( log )
++                    log << "preview_batch,150," << ( ssiSum / ssiCount )
++                        << ',' << ssiMax << ',' << ssiSum << '\n';
++                ssiCount = 0;
++                ssiSum = 0.0;
++                ssiMax = 0.0;
++            }
++        }
++    }
++
++
+ 
+     if( aLayer == LAYER_SHEET || aLayer == LAYER_SELECTION_SHADOWS )
+     {
+@@ -3767,3 +3912,4 @@
+ }
+ 
+ }; // namespace KIGFX
++
+--- a/eeschema/sch_painter.h
++++ b/eeschema/sch_painter.h
+@@ -55,6 +55,7 @@
+ class SCH_BUS_ENTRY_BASE;
+ class SCH_BITMAP;
+ class SCHEMATIC;
++class SCH_SHEET_PATH;
+ 
+ namespace KIGFX
+ {
+@@ -78,7 +79,13 @@
+ 
+     void SetSchematic( SCHEMATIC* aSchematic ) { m_schematic = aSchematic; }
+ 
++    // Optional sheet-instance context for offscreen previews.  The normal editor
++    // painter continues to use SCHEMATIC::CurrentSheet().
++    void SetSheetPathOverride( SCH_SHEET_PATH* aPath ) { m_sheetPathOverride = aPath; }
++
+ private:
++    SCH_SHEET_PATH* effectiveSheetPath() const;
++
+     void drawItemBoundingBox( const EDA_ITEM* aItem );
+     void draw( const EDA_ITEM*, int, bool aDimmed );
+     void draw( const SCH_PIN* aPin, int aLayer, bool aDimmed );
+@@ -149,6 +156,7 @@
+ private:
+     SCH_RENDER_SETTINGS m_schSettings;
+     SCHEMATIC*          m_schematic;
++    SCH_SHEET_PATH*     m_sheetPathOverride = nullptr;
+ };
+ 
+ }; // namespace KIGFX
+--- a/eeschema/sch_sheet.cpp
++++ b/eeschema/sch_sheet.cpp
+@@ -815,7 +815,7 @@
+ {
+     // Sheet pins are drawn by their parent sheet, so the parent needs to draw to LAYER_DANGLING
+     return { LAYER_DANGLING,    LAYER_HIERLABEL, LAYER_SHEETNAME,        LAYER_SHEETFILENAME,
+-             LAYER_SHEETFIELDS, LAYER_SHEET,     LAYER_SHEET_BACKGROUND, LAYER_SELECTION_SHADOWS };
++             LAYER_SHEETFIELDS, LAYER_SHEET,     LAYER_DRAW_BITMAPS, LAYER_SHEET_BACKGROUND, LAYER_SELECTION_SHADOWS };
+ }
+ 
+ 
+@@ -1445,6 +1445,34 @@
+         }
+ 
+         aPlotter->HyperlinkMenu( GetBoundingBox(), properties );
++    }
++
++
++    // SSI DEV024B1: plot read-only child miniatures on the ROOT PDF/SVG page.
++    // A child plot can itself contain hierarchical sheets; never recurse into their previews.
++    static thread_local bool s_siPlottingPreview = false;
++
++    if( !aBackground && !s_siPlottingPreview && Schematic() && GetScreen()
++        && Schematic()->CurrentSheet().size() == 1
++        && ( aPlotter->GetPlotterType() == PLOT_FORMAT::PDF
++             || aPlotter->GetPlotterType() == PLOT_FORMAT::SVG ) )
++    {
++        const PAGE_INFO& page = GetScreen()->GetPageSettings();
++        const VECTOR2I pageSize( schIUScale.MilsToIU( page.GetWidthMils() ),
++                                 schIUScale.MilsToIU( page.GetHeightMils() ) );
++
++        if( aPlotter->BeginSheetPreview( m_pos, m_size, pageSize ) )
++        {
++            s_siPlottingPreview = true;
++            SCH_SHEET_PATH oldPath = Schematic()->CurrentSheet();
++            SCH_SHEET_PATH childPath = oldPath;
++            childPath.push_back( this );
++            Schematic()->SetCurrentSheet( childPath );
++            GetScreen()->Plot( aPlotter, aPlotOpts );
++            Schematic()->SetCurrentSheet( oldPath );
++            s_siPlottingPreview = false;
++            aPlotter->EndSheetPreview();
++        }
+     }
+ 
+     // Plot sheet pins
+@@ -2141,6 +2169,23 @@
+ 
+                                     return std::make_unique<VALIDATION_ERROR_MSG>( msg );
+                                 } );
++
++        // SSI_KiCad_DEV021B: native property-grid Geometry group.
++        // Mixed selections are handled by KiCad's existing property manager.
++        const wxString geometryGroup = _HKI( "Geometry" );
++
++        propMgr.AddProperty( new PROPERTY<SCH_SHEET, int>( _HKI( "X" ),
++                             &SCH_SHEET::SetSheetX, &SCH_SHEET::GetSheetX,
++                             PROPERTY_DISPLAY::PT_COORD ), geometryGroup );
++        propMgr.AddProperty( new PROPERTY<SCH_SHEET, int>( _HKI( "Y" ),
++                             &SCH_SHEET::SetSheetY, &SCH_SHEET::GetSheetY,
++                             PROPERTY_DISPLAY::PT_COORD ), geometryGroup );
++        propMgr.AddProperty( new PROPERTY<SCH_SHEET, int>( _HKI( "Width" ),
++                             &SCH_SHEET::SetSheetWidth, &SCH_SHEET::GetSheetWidth,
++                             PROPERTY_DISPLAY::PT_SIZE ), geometryGroup );
++        propMgr.AddProperty( new PROPERTY<SCH_SHEET, int>( _HKI( "Height" ),
++                             &SCH_SHEET::SetSheetHeight, &SCH_SHEET::GetSheetHeight,
++                             PROPERTY_DISPLAY::PT_SIZE ), geometryGroup );
+ 
+         propMgr.AddProperty( new PROPERTY<SCH_SHEET, int>( _HKI( "Border Width" ),
+                              &SCH_SHEET::SetBorderWidth, &SCH_SHEET::GetBorderWidth,
+--- a/eeschema/sch_sheet.h
++++ b/eeschema/sch_sheet.h
+@@ -139,6 +139,18 @@
+ 
+     SCH_SCREEN* GetScreen() const { return m_screen; }
+ 
++    // SSI_KiCad_DEV021B: scalar geometry properties for native multi-edit.
++    // Move() keeps pins and fields aligned; Resize() repositions sheet pins.
++    int  GetSheetX() const { return m_pos.x; }
++    int  GetSheetY() const { return m_pos.y; }
++    int  GetSheetWidth() const { return m_size.x; }
++    int  GetSheetHeight() const { return m_size.y; }
++
++    void SetSheetX( int aX ) { SetPosition( VECTOR2I( aX, m_pos.y ) ); }
++    void SetSheetY( int aY ) { SetPosition( VECTOR2I( m_pos.x, aY ) ); }
++    void SetSheetWidth( int aWidth ) { Resize( VECTOR2I( aWidth, m_size.y ) ); }
++    void SetSheetHeight( int aHeight ) { Resize( VECTOR2I( m_size.x, aHeight ) ); }
++
+     VECTOR2I GetSize() const { return m_size; }
+     void     SetSize( const VECTOR2I& aSize ) { m_size = aSize; }
+ 
+--- a/eeschema/sch_view.cpp
++++ b/eeschema/sch_view.cpp
+@@ -111,6 +111,12 @@
+ 
+ void SCH_VIEW::DisplaySheet( const SCH_SCREEN *aScreen )
+ {
++    // SSI_KiCad_DEV022C: cache sheet vectors, render preview bitmaps
++    // on KiCad's existing noncached bitmap layer.
++    // DEV-023A.1 DIAGNOSTIC: disable sheet cache to isolate Cairo missing vectors.
++    // Sheet layer target is selected by SCH_DRAW_PANEL for the active GAL backend.
++    SetLayerTarget( LAYER_DRAW_BITMAPS, TARGET_NONCACHED );
++
+     for( SCH_ITEM* item : aScreen->Items() )
+         Add( item );
+ 
+--- a/include/plotters/plotter.h
++++ b/include/plotters/plotter.h
+@@ -603,6 +603,13 @@
+      */
+     VECTOR2I GetPlotOffsetUserUnits() {return m_plotOffset; }
+ 
++    // SSI DEV024B1: temporarily map a child schematic page into a sheet rectangle.
++    // The caller must pair a successful BeginSheetPreview with EndSheetPreview.
++    virtual bool BeginSheetPreview( const VECTOR2I& aTopLeft, const VECTOR2I& aSize,
++                                    const VECTOR2I& aChildPageSize ) { return false; }
++    virtual void EndSheetPreview() {}
++
++
+ 
+ protected:
+     /**
+@@ -686,6 +693,14 @@
+ protected:      // variables used in most of plotters:
+ 
+     /// Plot scale - chosen by the user (even implicitly with 'fit in a4')
++    // SSI DEV024B1: saved viewport for nested preview drawing.
++    VECTOR2I         m_ssiPreviewOffset;
++    double           m_ssiPreviewScale = 1.0;
++    double           m_ssiPreviewIUsPerDecimil = 1.0;
++    bool             m_ssiPreviewMirror = false;
++    bool             m_ssiPreviewActive = false;
++    unsigned         m_ssiPreviewSerial = 0;
++
+     double           m_plotScale;
+ 
+     /* Caller scale (how many IUs in a decimil - always); it's a double
+--- a/include/plotters/plotters_pslike.h
++++ b/include/plotters/plotters_pslike.h
+@@ -336,6 +336,11 @@
+     virtual void SetViewport( const VECTOR2I& aOffset, double aIusPerDecimil, double aScale,
+                               bool aMirror ) override;
+ 
++    bool BeginSheetPreview( const VECTOR2I& aTopLeft, const VECTOR2I& aSize,
++                            const VECTOR2I& aChildPageSize ) override;
++    void EndSheetPreview() override;
++
++
+     /**
+      * Rectangles in PDF. Supported by the native operator.
+      */
+@@ -654,6 +659,11 @@
+ 
+     virtual void SetViewport( const VECTOR2I& aOffset, double aIusPerDecimil, double aScale,
+                               bool aMirror ) override;
++
++    bool BeginSheetPreview( const VECTOR2I& aTopLeft, const VECTOR2I& aSize,
++                            const VECTOR2I& aChildPageSize ) override;
++    void EndSheetPreview() override;
++
+     virtual void Rect( const VECTOR2I& p1, const VECTOR2I& p2, FILL_T fill, int width,
+                        int aCornerRadius = 0 ) override;
+     virtual void Circle( const VECTOR2I& pos, int diametre, FILL_T fill, int width ) override;
+--- a/include/view/view.h
++++ b/include/view/view.h
+@@ -33,6 +33,11 @@
+ #include <unordered_map>
+ #include <memory>
+ 
++#ifdef _MSC_VER
++#include <cstdio>
++#include <intrin.h>
++#endif
++
+ #include <math/box2.h>
+ #include <gal/definitions.h>
+ 
+@@ -502,6 +507,21 @@
+         if( it == m_layers.end() )
+             return;
+ 
++        // SSI DEV023A10: trace the actual sheet target mutations, not redraw samples.
++        // LAYER_SHEET = 1114 in this KiCad 10.0.6 build (measured in DEV023A9).
++        if( aLayer == 1114 )
++        {
++            const int oldTarget = static_cast<int>( it->second.target );
++            const int newTarget = static_cast<int>( aTarget );
++            static unsigned long long sequence = 0;
++            const unsigned long long n = ++sequence;
++            if( std::FILE* file = std::fopen( "C:/Downloads/SSI_DEV023A10_Target_Setters.csv", "a" ) )
++            {
++                std::fprintf( file, "%llu,%p,%d,%d,%p\n", n, static_cast<void*>( this ),
++                              oldTarget, newTarget, _ReturnAddress() );
++                std::fclose( file );
++            }
++        }
+         it->second.target = aTarget;
+     }
+ 
