@@ -31,3 +31,18 @@ This is a technical source-distribution audit, not a legal opinion.
 
 - [KiCad licenses](https://www.kicad.org/about/licenses/)
 - [GNU GPL version 3, sections 1, 5 and 6](https://www.gnu.org/licenses/gpl-3.0.html)
+
+
+## Follow-up inspection — 15 October 2026
+
+Direct inspection of the supplied 267 MB source archive shows:
+
+- 18,570 ZIP entries, including a KiCad source tree and a `vcpkg_installed/` directory.
+- No embedded `.git/` history, so the upstream commit/tag cannot be established from repository metadata.
+- A `vcpkg.json` exists, but no root `CMakeCache.txt` or `build/CMakeCache.txt` was found in the archive. This limits reconstruction of the exact build configuration.
+- The modification patch contains live development logging, including `common/gal/cairo/cairo_gal.cpp` writing to `C:/Downloads/SSI_DEV023A4B_Cairo_Groups.csv`.
+- A targeted source scan found development instrumentation in `common/gal/cairo/cairo_gal.cpp`, `common/view/view.cpp`, `eeschema/sch_painter.cpp`, and `include/view/view.h`.
+
+**Result:** the supplied sources and patch are not yet a proven clean, reproducible corresponding-source release. Do not remove instrumentation from the tested v1.0.2 binaries without making and testing a new release version. The next step is to obtain a pristine KiCad 10.0.6 baseline and a recorded Windows build manifest (compiler, CMake cache, vcpkg baseline, command lines, build outputs), then compare the modified source and shipped binaries.
+
+No binaries, patcher code, or installer were changed by this audit.
