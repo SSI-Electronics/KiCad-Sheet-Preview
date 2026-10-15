@@ -6,8 +6,8 @@ This document captures the **observed build environment** from the retained buil
 
 - Official KiCad 10.0.6 source baseline (verify provenance from the KiCad project).
 - SSI's 15-file patch: [SSI_KiCad_10.0.6_CLEAN_15_FILES.patch](../source/patches/SSI_KiCad_10.0.6_CLEAN_15_FILES.patch).
-- The full modified source tree is preserved in `SSI_KiCad_Sheet_Preview_v1.0.2_Source_Licenses_002.zip`, within `KiCad_Modified_Source.zip`. This archive has not yet been attached to a public release.
-- The retained `SSI_KiCad_10.0.6_BUILD_AUDIT_001.zip` contains the actual `CMakeCache.txt`, `build.ninja`, `compile_commands.json`, `install_manifest.txt`, `.ninja_log` and vcpkg install log. It is not yet a published release asset.
+- The full modified source tree is preserved in `SSI_KiCad_Sheet_Preview_v1.0.2_Source_Licenses_002.zip`, within `KiCad_Modified_Source.zip`. 
+- The retained `SSI_KiCad_10.0.6_BUILD_AUDIT_001.zip` contains the actual `CMakeCache.txt`, `build.ninja`, `compile_commands.json`, `install_manifest.txt`, `.ninja_log` and vcpkg install log. 
 
 ## Observed build environment
 
@@ -60,6 +60,6 @@ if ($LASTEXITCODE -ne 0) { throw 'Install failed' }
 
 The source snapshot includes 164 `vcpkg_installed/vcpkg/blds/` ABI metadata entries, **not** the third-party package source trees. No `downloads/` or `buildtrees/` source trees were found in that snapshot. The vcpkg install log records 107 installed packages. Review the actual 27-binary link/dependency closure and the GPLv3 System Libraries exception to determine which external sources/notices must accompany the binary distribution. Do **not** assume that all 107 packages must be republished or that none are needed.
 
-## Remaining source-release gate
+## Source availability limitations
 
-Before attaching the object-code patcher ZIP to a public GitHub Release, verify that the actual source used to build the binaries, relevant dependency sources/notices, and scripts to control compilation and installation are available through a GPLv3 section 6-compliant distribution route. Neither ZIP CRC verification nor this reconstructed template certifies that condition. No KiCad binaries were rebuilt for this documentation.
+The observed build evidence does not establish a clean-room rebuild of all 27 binaries. The exact applicable dependency sources and build/install scripts must be assessed for GPLv3 Corresponding Source obligations. No KiCad binaries were rebuilt for this documentation.
