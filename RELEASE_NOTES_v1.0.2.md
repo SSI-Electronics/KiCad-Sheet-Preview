@@ -24,15 +24,6 @@ The 15-file modified KiCad patch is published at [source/patches](../source/patc
 ## Requirements and precautions
 Close KiCad before patching; select only an **original KiCad 10.0.6 Windows x64** installation that passes validation. Retain patcher-managed backups until successful restoration. Do not bypass security protections to run the unsigned EXE.
 
-## Licensing and source distribution — outstanding
-SSI's original Go patcher code and KiCad modifications are GPL-3.0-or-later, with owner approval; see [LICENSING.md](LICENSING.md). The version 002 source ZIP is the retained **full modified KiCad source tree**, rather than the earlier patch-only addendum. It also contains available build evidence and license texts. External dependency source and complete build-control coverage have not been independently confirmed.
+## Licensing and source distribution
+SSI's original Go patcher code and KiCad modifications are licensed GPL-3.0-or-later; see [LICENSING.md](LICENSING.md). The version 002 source archive includes the preserved modified KiCad source tree, available build evidence and license texts. Exact external dependency source and complete build reconstruction have not been independently verified. The historical v1.0.2 binary includes development instrumentation and an obsolete embedded README; the tested binary was not altered.
 
-**Do not describe this release as GPL-complete yet.** The patcher source ZIP and 15-file KiCad patch are **not by themselves complete Corresponding Source** for all included KiCad binaries and dependencies. Before publicly attaching the binary ZIP, supply the full applicable Corresponding Source, necessary build/install scripts and third-party license notices, or an appropriate GPLv3-compliant distribution arrangement. The historic v1.0.2 binaries contain documented development instrumentation and an obsolete embedded README. The tested binary has not been altered.
-
-## Publishing steps
-1. On GitHub open **Releases → Draft a new release**.
-2. Set tag `v1.0.2`, title `SSI KiCad Sheet Preview v1.0.2 — Windows x64`.
-3. Attach the tested Windows ZIP and the version 002 full source ZIP; optionally attach the standalone Go source ZIP. Keep the two mandatory SHA-256 values visible.
-4. **Publish the binary release only once the remaining corresponding-source and build-control requirements have been verified or supplied through a compliant equivalent-access source route.**
-
-This document is a release draft, not evidence that a GitHub Release has been created.
