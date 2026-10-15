@@ -34,7 +34,7 @@ The patch retains development CSV instrumentation targeting `C:/Downloads`. The 
 
 The patcher ZIP embeds 27 KiCad executables and libraries. Supplying only `main.go`, `go.mod`, and the 15-file patch is **not** enough to establish complete GPL Corresponding Source for those binaries. The full modified KiCad source tree, applicable dependency sources, build/install-control scripts and notices must be provided as required by GPLv3 sections 4–6. Section 6 permits several methods of providing source; source need not reproduce byte-for-byte identical object code, but must be the source from which the distributed object code was generated with the scripts required to control compilation and installation.
 
-A full modified KiCad source-tree snapshot is retained, along with build logs, CMake configuration, and a 107-package vcpkg inventory. Availability of all externally fetched dependency sources and a validated reconstruction of the full payload build have **not** been established. Therefore **do not claim the release is GPL-complete** based solely on the files presently hosted in this repository.
+A full modified KiCad source-tree snapshot is retained, along with build logs, CMake configuration, and a 107-package vcpkg inventory. Availability of all externally fetched dependency sources and a validated reconstruction of the full payload build have **not** been established. The retained materials alone do not establish verified complete Corresponding Source for all redistributed binaries.
 
 ## Warranty and attribution
 
