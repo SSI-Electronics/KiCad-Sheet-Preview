@@ -10,7 +10,7 @@ Archive integrity checked: outer ZIP CRC **PASS**. Embedded `KiCad_Modified_Sour
 
 Verified contents include `LICENSE`, `LICENSE.GPLv3`, `LICENSE.README`, `CMakeLists.txt`, `vcpkg.json`, `eeschema/sch_sheet.cpp`, `common/gal/cairo/cairo_gal.cpp`; source patch; standalone Go patcher source; build notes and install manifest.
 
-**Distribution status:** This is a preserved full modified KiCad source-tree snapshot with notices, but external vcpkg dependency sources and full build/install control have not been confirmed complete. Do not represent the CRC checks as a GPL compliance certification. The standalone Go patcher copyright holder must explicitly approve its license; current bundled README states that no separate license grant has yet been asserted for that source.
+**Distribution status:** This is a preserved full modified KiCad source-tree snapshot with notices, but external vcpkg dependency sources and full build/install control have not been confirmed complete. CRC checks establish archive integrity, not GPL compliance. SSI Electronics subsequently approved GPL-3.0-or-later for its original Go patcher code; see the updated version 002 bundle.
 
 No binaries were rebuilt or changed during this verification.
 
@@ -24,4 +24,4 @@ Following explicit owner approval on 15 October 2026, the accompanying source-li
 - ZIP integrity: PASS; includes `SHA256SUMS.txt`
 - Embedded modified KiCad source ZIP SHA-256: `b5edc4c761efe02f907852a35a227eceb81439c548b414276c3c3c003aee1726` (unchanged)
 
-**Use 002, not 001, for subsequent release preparation.** The bundle is currently a retained local artifact, not a GitHub Release attachment. Dependency source and build-control completeness are still under review; this is not a GPL compliance certification.
+Version 002 supersedes version 001. Dependency-source and build-control completeness have not been independently verified.
