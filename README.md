@@ -13,10 +13,6 @@ Automatic, scaled previews of child schematics inside hierarchical sheet rectang
 - Updates previews after edits to child sheets.
 - Displays **and lets you adjust** hierarchical sheet geometry directly on the root schematic page.
 
-## Release status
-
-**Public binary release is on hold** while corresponding-source and licensing checks are completed. The instructions below describe the tested patcher workflow; do not assume the ZIP is currently available from GitHub Releases.
-
 ## Installation
 
 This project distributes a **separate patcher**, not a complete KiCad installer.
@@ -53,4 +49,4 @@ No browser cookie or cloud account is involved. Installation validation is perfo
 
 ## Licensing
 
-SSI Electronics releases its original Go patcher code and its KiCad modifications under **GPL-3.0-or-later** with the project owner's approval. Upstream KiCad and third-party components retain their own applicable copyright and license notices. See [LICENSING.md](LICENSING.md). The full corresponding-source and build-script distribution for the embedded KiCad binaries is still being completed; this repository is not yet a verified complete source distribution.
+SSI Electronics releases its original Go patcher code and its KiCad modifications under **GPL-3.0-or-later** with the project owner's approval. Upstream KiCad and third-party components retain their own applicable copyright and license notices. See [LICENSING.md](LICENSING.md). The available source package and build provenance are documented in [source verification](docs/SOURCE_PACKAGE_VERIFICATION.md) and [Windows build notes](docs/BUILD_FROM_SOURCE_WINDOWS.md).
