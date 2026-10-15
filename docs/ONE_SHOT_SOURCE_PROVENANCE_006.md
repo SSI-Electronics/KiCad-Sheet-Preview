@@ -28,3 +28,14 @@ Scan summary: the original source, build, install and `vcpkg_installed` director
 4. Only then publish the binary release; do not label the current draft GPL-complete on the strength of inventories alone.
 
 No further local scan is requested. Existing binaries and their SHA-256 values remain unchanged.
+
+## Public retrieval locations (verified repository identities)
+
+The upstream registry sources are publicly browseable at these fixed revisions:
+
+- [Microsoft vcpkg at baseline](https://github.com/microsoft/vcpkg/tree/01e159b519b7e791cc5bb3548663a26d9c0922a3)
+- [KiCad custom registry at baseline](https://gitlab.com/kicad/packaging/kicad-vcpkg-registry/-/tree/9b23c206291914d106d4e9ca486453f676c9b561)
+
+The KiCad manifest directly declares Boost modules, Cairo, wxWidgets 3.3, Curl, HarfBuzz, GLM, OpenCASCADE, OpenGL, Python, OpenSSL, SQLite, ICU, ngspice, wxPython, libgit2, NNG, Protobuf and zstd, with several host tools. **This list is not the final link closure.** In particular, the registry baselines point to version records; vcpkg's per-port `git-tree` records identify the exact portfile revisions. A portfile then identifies the original upstream source and patches. A registry link alone is not the actual corresponding source of a compiled library.
+
+For an eventual object-code release, preserve the exact resolved port versions and source references (including transitive libraries) and ensure the GPL-required materials are offered with equivalent access to the binary. No remote sources were downloaded into the retained local release bundle during this documentation step.
