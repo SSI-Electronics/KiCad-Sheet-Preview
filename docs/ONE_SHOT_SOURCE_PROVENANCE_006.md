@@ -20,14 +20,9 @@ The returned `SSI_KiCad_v1.0.2_ONE_SHOT_Release_Evidence_006(1).zip` contained 2
 
 Scan summary: the original source, build, install and `vcpkg_installed` directories were present; 133 vcpkg-info files and 1,401 share-manifest files were inventoried. The expected vcpkg download and archive directories were missing at the locations scanned. No source downloads or builds were performed.
 
-## Practical release gate
+## Provenance limitations
 
-1. Retrieve the **exact registry trees at the pinned baselines** (including the KiCad custom registry) and preserve applicable portfiles, patches, version metadata and license notices.
-2. For the actual 27 modified KiCad payload files, establish the relevant dynamically and statically linked dependency closure from the preserved build evidence; distinguish redistributable source obligations from System Libraries and independent build-only tools.
-3. Make the required corresponding sources and scripts available via a GPLv3 section 6-compliant route on equivalent terms to the object-code download. Preserve third-party notices.
-4. Only then publish the binary release; do not label the current draft GPL-complete on the strength of inventories alone.
-
-No further local scan is requested. Existing binaries and their SHA-256 values remain unchanged.
+The retained evidence does not itself contain all externally fetched dependency source archives. The fixed registry references below document provenance but do not substitute for applicable Corresponding Source. Existing binaries and their SHA-256 values remain unchanged.
 
 ## Public retrieval locations (verified repository identities)
 
@@ -38,4 +33,4 @@ The upstream registry sources are publicly browseable at these fixed revisions:
 
 The KiCad manifest directly declares Boost modules, Cairo, wxWidgets 3.3, Curl, HarfBuzz, GLM, OpenCASCADE, OpenGL, Python, OpenSSL, SQLite, ICU, ngspice, wxPython, libgit2, NNG, Protobuf and zstd, with several host tools. **This list is not the final link closure.** In particular, the registry baselines point to version records; vcpkg's per-port `git-tree` records identify the exact portfile revisions. A portfile then identifies the original upstream source and patches. A registry link alone is not the actual corresponding source of a compiled library.
 
-For an eventual object-code release, preserve the exact resolved port versions and source references (including transitive libraries) and ensure the GPL-required materials are offered with equivalent access to the binary. No remote sources were downloaded into the retained local release bundle during this documentation step.
+The exact resolved port versions and source references (including transitive libraries) are relevant to evaluating the GPL-required materials. No remote sources were downloaded into the retained local release bundle during this documentation step.
