@@ -13,6 +13,17 @@ Automatic, scaled previews of child schematics inside hierarchical sheet rectang
 - Updates previews after edits to child sheets.
 - Displays **and lets you adjust** hierarchical sheet geometry directly on the root schematic page.
 
+## Source code and rendering architecture
+
+The repository's [15-file source patch](source/patches/SSI_KiCad_10.0.6_CLEAN_15_FILES.patch) is a **unified C++ source diff** against upstream KiCad 10.0.6, not a binary patch. The complete modified KiCad source-tree snapshot is documented separately in [source package verification](docs/SOURCE_PACKAGE_VERIFICATION.md); it is not unpacked into this repository.
+
+Two distinct rendering paths are involved:
+
+- **Interactive Eeschema preview:** `eeschema/sch_painter.cpp` draws linked child-sheet content within the sheet rectangle; GAL/OpenGL code adjusts scaled shader-generated geometry such as line widths and circle radii.
+- **PDF/SVG output:** `eeschema/sch_sheet.cpp` and the PDF/SVG plotters temporarily map and clip the child page into the parent sheet rectangle. This is separate from the interactive GAL rendering path.
+
+**Development diagnostics in v1.0.2:** the published source patch still contains temporary Cairo/view/preview tracing, including hardcoded `C:/Downloads` CSV log paths. These paths are diagnostic outputs, not a required installation directory. The published v1.0.2 patch and binaries have **not** yet been rebuilt or replaced with a diagnostics-cleaned version. A cleanup should be reviewed and validated before it is released.
+
 ## Installation
 
 This project distributes a **separate patcher**, not a complete KiCad installer.
